@@ -1,53 +1,48 @@
 package web.dao;
 
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Repository;
 import web.model.User;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.atomic.AtomicInteger;
-
+@Repository
 public class UserDAOImpl implements UserDAO {
-    private static final AtomicInteger AUTO_ID = new AtomicInteger();
-    private static Map<Integer, User> users = new HashMap<>();
-    static {
-        User user1 = new User("Tom", 21, "Moscow");
-        user1.setId(AUTO_ID.incrementAndGet());
-        users.put(user1.getId(), user1);
+    private final SessionFactory sessionFactory;
 
-        User user2 = new User("Alex", 22, "Moscow");
-        user2.setId(AUTO_ID.incrementAndGet());
-        users.put(user2.getId(), user2);
-
-        User user3 = new User("Kate", 23, "Moscow");
-        user3.setId(AUTO_ID.incrementAndGet());
-        users.put(user3.getId(), user3);
+    @Autowired
+    public UserDAOImpl(SessionFactory sessionFactory) {
+        this.sessionFactory = sessionFactory;
     }
 
     @Override
     public List<User> allUsers() {
-        return new ArrayList<>(users.values());
+        Session session = sessionFactory.getCurrentSession();
+        return session.createQuery("from User", User.class).getResultList();
     }
 
     @Override
     public void add(User user) {
-        user.setId(AUTO_ID.incrementAndGet());
-        users.put(user.getId(), user);
+        Session session = sessionFactory.getCurrentSession();
+        session.save(user);
     }
 
     @Override
     public void edit(User user) {
-        users.put(user.getId(), user);
+        Session session = sessionFactory.getCurrentSession();
+        session.update(user);
     }
 
     @Override
     public void delete(int id) {
-        users.remove(id);
+        Session session = sessionFactory.getCurrentSession();
+        session.delete(session.get(User.class, id));
     }
 
     @Override
     public User getById(int id) {
-        return users.get(id);
+        Session session = sessionFactory.getCurrentSession();
+        return session.get(User.class, id);
     }
 }
